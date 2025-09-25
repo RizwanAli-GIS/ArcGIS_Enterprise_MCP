@@ -1,0 +1,212 @@
+{
+  "name": "ArcGIS Enterprise MCP Connector",
+  "version": "1.0.0",
+  "description": "MCP connector for ArcGIS Enterprise exposing common actions such as getLayers, query_layer, get_statistics, and export_map.",
+  "endpoints": [
+    {
+      "type": "http",
+      "url": "http://localhost:3000/mcp"
+    }
+  ],
+  "actions": [
+    {
+      "name": "getTradeoffs",
+      "method": "POST",
+      "path": "/mcp/get_tradeoffs",
+      "description": "Identify districts that are strong in one pillar and weak in another pillar using ArcGIS Feature Service i.e. Which Districts do well in health but poorly in environment, or Where education is strong but wellbeing is weak..etc",
+      "requestSchema": {
+        "type": "object",
+        "required": ["layer_url", "token", "strong_field", "weak_field", "strong_threshold", "weak_threshold"],
+        "properties": {
+          "layer_url": {
+            "type": "string",
+            "description": "URL of the ArcGIS Feature Layer to query."
+          },
+          "token": {
+            "type": "string",
+            "description": "Authentication token for the ArcGIS layer."
+          },
+          "strong_field": {
+            "type": "string",
+            "description": "Field name representing the pillar for which the district should be strong."
+          },
+          "weak_field": {
+            "type": "string",
+            "description": "Field name representing the pillar for which the district should be weak."
+          },
+          "strong_threshold": {
+            "type": "number",
+            "description": "Minimum score to consider a district strong in the selected pillar."
+          },
+          "weak_threshold": {
+            "type": "number",
+            "description": "Maximum score to consider a district weak in the selected pillar."
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number",
+            "description": "Number of districts meeting the criteria."
+          },
+          "districts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "district_name": { "type": "string", "description": "Name of the district." },
+                "<strong_field>": { "type": "number", "description": "Score for the strong pillar (field name is dynamic)." },
+                "<weak_field>": { "type": "number", "description": "Score for the weak pillar (field name is dynamic)." }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "getLayers",
+      "method": "POST",
+      "path": "/getLayers",
+      "description": "List available feature/map services from ArcGIS Enterprise.",
+      "requestSchema": {
+        "type": "object",
+        "required": ["portal_url", "token"],
+        "properties": {
+          "portal_url": {
+            "type": "string",
+            "description": "ArcGIS Enterprise portal URL (e.g. https://yourportal/arcgis)."
+          },
+          "token": {
+            "type": "string",
+            "description": "Authentication token."
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "url": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "query_layer",
+      "method": "POST",
+      "path": "/query_layer",
+      "description": "Query features from a specific layer (returns up to 10 records by default).",
+      "requestSchema": {
+        "type": "object",
+        "required": ["layer_url", "token"],
+        "properties": {
+          "layer_url": {
+            "type": "string",
+            "description": "Layer REST endpoint."
+          },
+          "token": {
+            "type": "string",
+            "description": "Authentication token."
+          },
+          "geometry": {
+            "type": "object",
+            "description": "Optional geometry filter."
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "array",
+            "items": { "type": "object" }
+          }
+        }
+      }
+    },
+    {
+      "name": "get_statistics",
+      "method": "POST",
+      "path": "/get_statistics",
+      "description": "Run statistical queries (sum, avg, min, max, etc.) on a given layer.",
+      "requestSchema": {
+        "type": "object",
+        "required": ["layer_url", "token", "statFields"],
+        "properties": {
+          "layer_url": {
+            "type": "string",
+            "description": "Layer REST endpoint."
+          },
+          "token": {
+            "type": "string",
+            "description": "Authentication token."
+          },
+          "statFields": {
+            "type": "string",
+            "description": "Comma separated list, e.g. 'POPULATION:sum,AREA:avg'."
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "statistics": {
+            "type": "array",
+            "items": { "type": "object" }
+          }
+        }
+      }
+    },
+    {
+      "name": "export_map",
+      "method": "POST",
+      "path": "/export_map",
+      "description": "Export a map image from a Map Service.",
+      "requestSchema": {
+        "type": "object",
+        "required": ["map_service_url", "token"],
+        "properties": {
+          "map_service_url": {
+            "type": "string",
+            "description": "Map Service REST endpoint."
+          },
+          "token": {
+            "type": "string",
+            "description": "Authentication token."
+          },
+          "bbox": {
+            "type": "string",
+            "description": "Optional bounding box, e.g. '-130,20,-60,55'."
+          },
+          "size": {
+            "type": "string",
+            "description": "Image size in WIDTH,HEIGHT format, default '1024,768'."
+          },
+          "format": {
+            "type": "string",
+            "description": "Image format (png32, jpg, etc.)."
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "image": {
+            "type": "string",
+            "description": "URL to the exported map image."
+          }
+        }
+      }
+    }
+  ]
+}
